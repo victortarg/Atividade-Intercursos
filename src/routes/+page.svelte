@@ -1,23 +1,13 @@
 <script lang="ts">
-  // Importa ferramentas do Svelte (neste caso o onMount, embora não o estejamos usando no momento, é comum ter)
   import { onMount } from "svelte";
 
-  // --- CONTROLE DE SCROLL (ROLAGEM DA TELA) ---
-  // Criamos uma variável que vai guardar o número de pixels que o usuário já rolou para baixo.
+  // --- CONTROLE DE SCROLL ---
   let scrollY = 0;
-
-  // O símbolo "$:" é um superpoder do Svelte (chamado de reatividade).
-  // Ele diz: "Toda vez que o scrollY mudar, recalcule esta variável pollutionOpacity automaticamente".
-  // Math.min garante que o valor nunca passe de 1 (onde 0 é transparente e 1 é totalmente visível).
-  // Aumentamos para 800 para a transição da poluição ficar mais suave acompanhando a nova altura da tela.
   $: pollutionOpacity = Math.min(scrollY / 800, 1);
 
   // --- DADOS DO JOGO ---
-  // 'type' cria uma lista de opções permitidas. Assim, não corremos o risco de digitar o tipo de lixo errado.
   type TrashType = "plastico" | "papel" | "vidro" | "metal";
 
-  // 'interface' funciona como um "molde" ou "contrato".
-  // Dizemos ao código que todo 'TrashItem' (item de lixo) OBRIGATORIAMENTE precisa ter um id, nome, tipo e mensagem.
   interface TrashItem {
     id: number;
     name: string;
@@ -25,14 +15,12 @@
     impactMessage: string;
   }
 
-  // Molde para as lixeiras. Toda lixeira precisa de um tipo, uma cor e um nome.
   interface Bin {
     type: TrashType;
     color: string;
     name: string;
   }
 
-  // Criamos a lista (Array) de lixeiras, seguindo o Padrão de Cores ABNT/CONAMA rigorosamente.
   const bins: Bin[] = [
     { type: "papel", color: "#0052cc", name: "Papel (Azul)" },
     { type: "plastico", color: "#dc2626", name: "Plástico (Vermelho)" },
@@ -40,91 +28,68 @@
     { type: "metal", color: "#ca8a04", name: "Metal (Amarelo)" },
   ];
 
-  // Criamos a lista inicial dos lixos que ficarão espalhados pelo chão.
   const initialTrashItems: TrashItem[] = [
     {
       id: 1,
       name: "Garrafa PET",
       type: "plastico",
-      impactMessage:
-        "Incrível! Reciclar plástico evita que animais marinhos se machuquem e economiza petróleo!",
+      impactMessage: "Incrível! Reciclar plástico evita que animais marinhos se machuquem e economiza petróleo!",
     },
     {
       id: 2,
       name: "Caixa de Papelão",
       type: "papel",
-      impactMessage:
-        "Muito bem! Reciclar papel salva muitas árvores de serem cortadas!",
+      impactMessage: "Muito bem! Reciclar papel salva muitas árvores de serem cortadas!",
     },
     {
       id: 3,
       name: "Lata de Refrigerante",
       type: "metal",
-      impactMessage:
-        "Show! Reciclar alumínio economiza muita energia elétrica e minérios da natureza!",
+      impactMessage: "Show! Reciclar alumínio economiza muita energia elétrica e minérios da natureza!",
     },
     {
       id: 4,
       name: "Pote de Geleia",
       type: "vidro",
-      impactMessage:
-        "Perfeito! O vidro pode ser reciclado infinitas vezes sem perder a qualidade!",
+      impactMessage: "Perfeito! O vidro pode ser reciclado infinitas vezes sem perder a qualidade!",
     },
   ];
 
-  // 'trashItems' é a lista de lixos atual do jogo. Os "três pontinhos" (...initialTrashItems)
-  // servem para fazer uma cópia exata da lista inicial, em vez de alterar a original.
   let trashItems: TrashItem[] = [...initialTrashItems];
-
-  // Variável para controlar em qual fase o jogador está (1 = Fácil, 2 = Difícil sem texto).
   let currentRound = 1;
 
-  // --- ESTADO DO MODAL (JANELINHA DE AVISO) ---
-  // Variáveis para controlar se a janelinha de mensagem está aparecendo e o que está escrito nela.
-  let modalVisible = false; // Começa escondido (false)
+  // --- ESTADO DO MODAL ---
+  let modalVisible = false;
   let modalTitle = "";
   let modalMessage = "";
-  let modalType: "success" | "error" | "finish" = "success"; // Define as cores do modal
+  let modalType: "success" | "error" | "finish" = "success";
 
-  // --- LÓGICA DO JOGO (Arraste e Solte / Drag & Drop) ---
-  // Variável que guarda o lixo que o usuário está segurando (arrastando) no momento.
-  // Começa como 'null' (vazio) porque ninguém está arrastando nada no início.
+  // --- LÓGICA DO JOGO ---
   let draggedItem: TrashItem | null = null;
 
-  // Função disparada no exato momento em que o usuário clica e começa a arrastar um lixo.
   function handleDragStart(item: TrashItem) {
-    draggedItem = item; // Salva o lixo atual na variável draggedItem
+    draggedItem = item;
   }
 
-  // Função disparada quando o usuário solta o lixo em cima de uma lixeira.
-  // Recebe como parâmetro o 'binType' (tipo da lixeira: plástico, papel, etc).
   function handleDrop(binType: TrashType) {
-    // Se o usuário soltou sem estar arrastando nada, a função para por aqui (return).
     if (!draggedItem) return;
 
-    // Verifica se o tipo do lixo arrastado é igual ao tipo da lixeira onde ele foi solto.
     if (draggedItem.type === binType) {
-      // Se ACERTOU: Mostra a mensagem de sucesso com a curiosidade sobre aquele lixo.
       showModal("Parabéns!", draggedItem.impactMessage, "success");
-
-      // Remove o lixo da tela filtrando a lista (mantém todos os lixos, exceto o que acabou de ser jogado fora).
       trashItems = trashItems.filter((item) => item.id !== draggedItem?.id);
 
-      // Verifica se a lista de lixos ficou vazia (ou seja, se o jogador catou tudo).
       if (trashItems.length === 0) {
         if (currentRound === 1) {
-          // Se estava na fase 1, espera 1 segundo e meio (1500ms) e avança para a fase 2.
           setTimeout(() => {
             showModal(
               "Nível 2 Desbloqueado!",
               "Agora vamos testar sua memória. As lixeiras perderam os textos, use apenas as cores para acertar!",
               "success",
             );
-            currentRound = 2; // Muda para a fase 2
-            trashItems = [...initialTrashItems]; // Reinicia os lixos no chão
+            currentRound = 2;
+            trashItems = [...initialTrashItems];
           }, 1500);
         } else {
-          // Se já estava na fase 2 e esvaziou, mostra a mensagem de vitória final.
           setTimeout(() => {
             showModal(
               "Você Salvou a Cidade!",
@@ -135,30 +100,22 @@
         }
       }
     } else {
-      // Se ERROU: Mostra a janelinha de erro. O lixo não é removido da lista.
       showModal(
         "Ops! Lixeira Errada",
         `Esse item não vai nessa lixeira. Tente novamente!`,
         "error",
       );
     }
-    // Ao final, quer acerte ou erre, esvazia a "mão" do jogador (ninguém está arrastando mais nada).
     draggedItem = null;
   }
 
-  // Função auxiliar para configurar as informações do Modal e exibi-lo na tela (muda visível para true).
-  function showModal(
-    title: string,
-    message: string,
-    type: "success" | "error" | "finish",
-  ) {
+  function showModal(title: string, message: string, type: "success" | "error" | "finish") {
     modalTitle = title;
     modalMessage = message;
     modalType = type;
     modalVisible = true;
   }
 
-  // Função para esconder o Modal (muda visível para false).
   function closeModal() {
     modalVisible = false;
   }
@@ -169,189 +126,113 @@
 <main>
   <section class="hero-section">
     <div class="city-layer clean-city"></div>
-
-    <div
-      class="city-layer polluted-city"
-      style="opacity: {pollutionOpacity};"
-    ></div>
+    <div class="city-layer polluted-city" style="opacity: {pollutionOpacity};"></div>
+    <div class="scroll-instruction">Para onde vai o lixo quando ele sai da sua frente?</div>
   </section>
 
   <section class="content-section">
-    <h2>O Retrato do Lixo no Brasil</h2>
+    <h2>Projeto Re-ciclo</h2>
     <p>
-      Segundo dados da <strong>ABRELPE</strong> (Associação Brasileira de
-      Empresas de Limpeza Pública e Resíduos Especiais), o Brasil gera cerca de
-      <strong>82 milhões de toneladas</strong> de resíduos sólidos urbanos por ano.
-      Desse total, uma grande parte ainda tem destinação inadequada, afetando diretamente
-      o meio ambiente e as cidades.
+      O Problema: Cada pessoa gera em torno de 25 toneladas de lixo durante a vida. O grande desafio da nossa sociedade é que, se não vemos o lixo, não nos importamos com ele.
     </p>
 
     <div class="info-cards">
       <div class="card card-azul">
-        <h3 class="text-azul">Aumento Contínuo</h3>
-        <p>
-          A geração de lixo no Brasil cresce a cada ano, muitas vezes em ritmo
-          superior ao crescimento populacional, exigindo ações urgentes.
-        </p>
+        <h3 class="text-azul">A Solução</h3>
+        <p>Desenvolvemos uma intervenção pedagógica gamificada. O jogo transforma o descarte em uma experiência de aprendizado ativa.</p>
       </div>
       <div class="card card-vermelho">
-        <h3 class="text-vermelho">Baixa Reciclagem</h3>
-        <p>
-          Apenas cerca de 4% dos resíduos sólidos que poderiam ser reciclados no
-          país são efetivamente reaproveitados.
-        </p>
+        <h3 class="text-vermelho">Nosso Objetivo</h3>
+        <p>Acreditamos que a solução não é apenas "limpar", mas sim "educar para não sujar" através da visibilidade do processo.</p>
       </div>
       <div class="card card-verde">
-        <h3 class="text-verde">O Caminho</h3>
-        <p>
-          A educação ambiental e a separação correta dos resíduos nas
-          residências são os primeiros passos para mudar essa realidade.
-        </p>
+        <h3 class="text-verde">Público-Alvo</h3>
+        <p>A intervenção é voltada para crianças do ensino fundamental 2, mas o impacto se estende aos pais e à escola de forma geral.</p>
       </div>
     </div>
   </section>
 
   <section class="impacts-section">
-    <h2>Os Impactos do Lixo nas Cidades</h2>
-    <p>
-      O descarte inadequado de quase 30 milhões de toneladas anuais em lixões e
-      aterros controlados gera consequências graves:
-    </p>
+    <h2>ODS e Impacto</h2>
+    <p>Desenvolvido por uma equipe dedicada ao desenvolvimento sustentável global.</p>
 
     <div class="impact-container">
       <div class="impact-row">
         <div class="impact-text border-azul">
-          <h3 class="text-azul">Enchentes e Infraestrutura</h3>
-          <p>
-            O lixo descartado incorretamente nas vias públicas é carregado pelas
-            chuvas, entupindo bueiros e redes de drenagem. Isso é uma das
-            principais causas de enchentes urbanas, gerando prejuízos materiais
-            e paralisação das cidades.
-          </p>
+          <h3 class="text-azul">ODS 4</h3>
+          <p>Educação de Qualidade. Através de nossa metodologia, aliamos o ensino ao entretenimento consciente.</p>
         </div>
-        <div class="impact-text border-vermelho">
-          <h3 class="text-vermelho">Saúde Pública</h3>
-          <p>
-            O acúmulo de lixo em locais inadequados atrai vetores de doenças,
-            como ratos e mosquitos (incluindo o Aedes aegypti). Segundo a
-            ABRELPE, milhões de brasileiros têm a saúde impactada por viverem
-            próximos a áreas de descarte irregular.
-          </p>
+        <div class="impact-text border-verde">
+          <h3 class="text-verde">ODS 11</h3>
+          <p>Cidades e Comunidades Sustentáveis. Reforçando a importância da correta gestão de resíduos urbanos.</p>
         </div>
         <div class="impact-text border-amarelo">
-          <h3 class="text-amarelo">Poluição Ambiental e Climática</h3>
-          <p>
-            Lixões a céu aberto contaminam o solo e os lençóis freáticos através
-            do chorume. Além disso, a decomposição orgânica inadequada emite
-            grandes quantidades de gás metano, contribuindo fortemente para o
-            aquecimento global.
-          </p>
+          <h3 class="text-amarelo">ODS 12</h3>
+          <p>Consumo e Produção Responsáveis. Incentivando a reflexão sobre as 25 toneladas geradas por indivíduo.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="lifecycle-section">
-    <h2>O Ciclo e o Impacto de Cada Material</h2>
-    <p>
-      Entenda quanto tempo cada resíduo permanece no planeta e o que acontece
-      quando é descartado de forma incorreta:
-    </p>
+  <section class="five-rs-section">
+    <h2>A Regra dos 5 R's</h2>
+    <p>Para um futuro sustentável, precisamos ir além da reciclagem. Conheça os 5 pilares:</p>
 
-    <div class="lifecycle-container">
-      <div class="lifecycle-card border-vermelho">
-        <h3 class="text-vermelho">Plástico (Centenas de anos)</h3>
-        <p>
-          <strong>Ciclo:</strong> Demora até 400 anos para se decompor. Quando no
-          ambiente, fragmenta-se em microplásticos altamente tóxicos.
-        </p>
-        <p>
-          <strong>Impactos:</strong> Nas cidades, é o principal causador de entupimento
-          de bueiros, agravando as inundações. Na natureza, é ingerido por animais
-          marinhos, causando mortes em massa e desequilíbrio ecológico.
-        </p>
+    <div class="rs-container">
+      <div class="r-card border-repensar">
+        <h3 class="text-repensar">1. Repensar</h3>
+        <p>Cada compra deve ser consciente. Eu realmente preciso disso? Qual o impacto desse produto no planeta?</p>
       </div>
-
-      <div class="lifecycle-card border-azul">
-        <h3 class="text-azul">Papel (Meses a anos)</h3>
-        <p>
-          <strong>Ciclo:</strong> Decompõe-se em alguns meses, mas sua produção exige
-          o corte de milhares de árvores e gigantesco consumo de água.
-        </p>
-        <p>
-          <strong>Impactos:</strong> O desperdício impulsiona o desmatamento. Quando
-          enterrado em lixões, sua decomposição sem oxigênio libera altas taxas de
-          gás metano, um dos maiores causadores do efeito estufa.
-        </p>
+      <div class="r-card border-recusar">
+        <h3 class="text-recusar">2. Recusar</h3>
+        <p>Diga não a produtos que prejudicam o meio ambiente, como canudos plásticos, sacolas e embalagens excessivas.</p>
       </div>
-
-      <div class="lifecycle-card border-verde">
-        <h3 class="text-verde">Vidro (Milhares de anos)</h3>
-        <p>
-          <strong>Ciclo:</strong> Pode levar mais de 4.000 anos para desaparecer
-          na natureza, no entanto, é 100% e infinitamente reciclável.
-        </p>
-        <p>
-          <strong>Impactos:</strong> Quando descartado em matas, seus cacos podem
-          funcionar como uma lupa sob o sol e iniciar incêndios florestais devastadores.
-          Também causa acidentes graves a animais e profissionais da coleta seletiva.
-        </p>
+      <div class="r-card border-vermelho">
+        <h3 class="text-vermelho">3. Reduzir</h3>
+        <p>Diminuir o consumo desnecessário e o desperdício de recursos como água e energia no dia a dia.</p>
       </div>
-
-      <div class="lifecycle-card border-amarelo">
-        <h3 class="text-amarelo">Metal (Centenas de anos)</h3>
-        <p>
-          <strong>Ciclo:</strong> O alumínio leva de 200 a 500 anos para se decompor.
-          Sua extração da natureza é extremamente agressiva ao solo.
-        </p>
-        <p>
-          <strong>Impactos:</strong> A oxidação de metais descartados inadequadamente
-          contamina o solo e lençóis freáticos. A ausência de reciclagem exige mais
-          mineração, que destrói grandes áreas florestais e contamina rios com rejeitos.
-        </p>
+      <div class="r-card border-amarelo">
+        <h3 class="text-amarelo">4. Reutilizar</h3>
+        <p>Dar novas utilidades a objetos antes de jogá-los fora. Consertar e transformar em vez de descartar.</p>
+      </div>
+      <div class="r-card border-verde">
+        <h3 class="text-verde">5. Reciclar</h3>
+        <p>O último passo: quando não há outra opção, separar corretamente para que o material vire um novo produto.</p>
       </div>
     </div>
   </section>
 
-  <section class="three-rs-section">
-    <h2>A Regra Mágica dos 3 R's</h2>
-    <p>
-      Para revertermos as estatísticas e sermos amigos do planeta, precisamos
-      seguir três passos essenciais:
-    </p>
+  <section class="map-section">
+    <h2>Onde descartar em Fortaleza?</h2>
+    <p>Os Ecopontos são locais adequados para o descarte de móveis velhos, entulhos, restos de poda e recicláveis.</p>
 
-    <div class="rs-container">
-      <div class="r-card reduce border-vermelho">
-        <h3 class="text-vermelho">1. Reduzir</h3>
-        <p>
-          Comprar apenas o que realmente precisamos e evitar desperdícios. Menos
-          consumo desnecessário, menos geração de lixo!
-        </p>
+    <div class="map-container">
+      <iframe
+        title="Mapa de Ecopontos de Fortaleza"
+        src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d127415.42621021469!2d-38.583168019623774!3d-3.7631336440590833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1secopontos%20fortaleza!5e0!3m2!1spt-BR!2sbr!4v1715870000000!5m2!1spt-BR!2sbr"
+        width="100%"
+        height="450"
+        style="border:0; border-radius: 15px;"
+        allowfullscreen
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      >
+      </iframe>
+    </div>
+
+    <div class="map-info">
+      <div class="info-item">
+        <strong>O que levar:</strong> Papel, plástico, vidro, metal, entulhos de construção (até 2m³), móveis e podas.
       </div>
-
-      <div class="r-card reuse border-amarelo">
-        <h3 class="text-amarelo">2. Reutilizar</h3>
-        <p>
-          Dar uma nova utilidade aos objetos antes de descartá-los. Prolongar a
-          vida útil dos materiais diminui a pressão sobre os recursos naturais.
-        </p>
-      </div>
-
-      <div class="r-card recycle border-verde">
-        <h3 class="text-verde">3. Reciclar</h3>
-        <p>
-          Separar e destinar os materiais usados para que sejam transformados em
-          novos produtos pelas indústrias de reciclagem.
-        </p>
+      <div class="info-item">
+        <strong>Benefício:</strong> Utilizando os Ecopontos, você pode ganhar créditos na conta de luz ou bônus no Bilhete Único pelo programa <em>Ecoelce</em> ou <em>Recicla Fortaleza</em>.
       </div>
     </div>
   </section>
 
   <section class="game-section">
-    <h2>Hora de Agir!</h2>
-    <p>
-      Arraste o lixo espalhado para a lixeira correta e ajude a limpar a cidade!
-    </p>
+    <h2>Intervenção Pedagógica: O Jogo</h2>
+    <p>Arraste o lixo espalhado para a lixeira correta. Pratique o que você aprendeu!</p>
 
     <div class="trash-area border-verde">
       {#each trashItems as item (item.id)}
@@ -391,19 +272,8 @@
   </section>
 
   {#if modalVisible}
-    <div
-      class="modal-overlay"
-      on:click={closeModal}
-      on:keydown={closeModal}
-      tabindex="0"
-      role="button"
-    >
-      <div
-        class="modal-content {modalType}"
-        on:click|stopPropagation
-        tabindex="0"
-        role="dialog"
-      >
+    <div class="modal-overlay" on:click={closeModal} on:keydown={closeModal} role="button" tabindex="0">
+      <div class="modal-content {modalType}" on:click|stopPropagation role="dialog" tabindex="0">
         <h2>{modalTitle}</h2>
         <p>{modalMessage}</p>
         <button on:click={closeModal} class="modal-btn">Continuar</button>
@@ -413,477 +283,116 @@
 </main>
 
 <style>
-  /* --- PALETA DE CORES ABNT (Variáveis Globais) --- */
-  /* ':root' define variáveis que podemos reutilizar no código todo. Se precisar mudar a cor depois, muda só aqui. */
   :root {
-    --abnt-azul: #0052cc; /* Cor oficial do Papel */
-    --abnt-vermelho: #dc2626; /* Cor oficial do Plástico */
-    --abnt-verde: #16a34a; /* Cor oficial do Vidro */
-    --abnt-amarelo: #ca8a04; /* Cor oficial do Metal */
-
-    /* Tons pasteis clarinhos para o fundo das seções para os textos ficarem fáceis de ler */
+    --abnt-azul: #0052cc;
+    --abnt-vermelho: #dc2626;
+    --abnt-verde: #16a34a;
+    --abnt-amarelo: #ca8a04;
+    --repensar-color: #7c3aed;
+    --recusar-color: #4b5563;
     --abnt-bg-azul: #ebf4ff;
     --abnt-bg-vermelho: #fef2f2;
     --abnt-bg-verde: #f0fdf4;
     --abnt-bg-amarelo: #fefce8;
+    --bg-repensar: #f5f3ff;
   }
 
-  /* ':global(body)' aplica essas regras para o site inteiro, removendo margens padrão do navegador */
   :global(body) {
     margin: 0;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; /* Fonte séria e profissional */
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     background-color: #ffffff;
     color: #333;
-    line-height: 1.6; /* Espaçamento entre as linhas do texto */
+    line-height: 1.6;
+    overflow-x: hidden;
   }
 
-  /* Classes utilitárias: atalhos rápidos para aplicar as cores nos textos e bordas */
-  .text-azul {
-    color: var(--abnt-azul) !important;
-  }
-  .text-vermelho {
-    color: var(--abnt-vermelho) !important;
-  }
-  .text-verde {
-    color: var(--abnt-verde) !important;
-  }
-  .text-amarelo {
-    color: var(--abnt-amarelo) !important;
-  }
+  /* --- UTILITÁRIOS --- */
+  .text-azul { color: var(--abnt-azul) !important; }
+  .text-vermelho { color: var(--abnt-vermelho) !important; }
+  .text-verde { color: var(--abnt-verde) !important; }
+  .text-amarelo { color: var(--abnt-amarelo) !important; }
+  .text-repensar { color: var(--repensar-color) !important; }
+  .text-recusar { color: var(--recusar-color) !important; }
 
-  .border-azul {
-    border-bottom: 5px solid var(--abnt-azul);
-  }
-  .border-vermelho {
-    border-bottom: 5px solid var(--abnt-vermelho);
-  }
-  .border-verde {
-    border-bottom: 5px solid var(--abnt-verde);
-  }
-  .border-amarelo {
-    border-bottom: 5px solid var(--abnt-amarelo);
-  }
+  .border-azul { border-bottom: 5px solid var(--abnt-azul); }
+  .border-vermelho { border-bottom: 5px solid var(--abnt-vermelho); }
+  .border-verde { border-bottom: 5px solid var(--abnt-verde); }
+  .border-amarelo { border-bottom: 5px solid var(--abnt-amarelo); }
+  .border-repensar { border-bottom: 5px solid var(--repensar-color); }
+  .border-recusar { border-bottom: 5px solid var(--recusar-color); }
 
-  /* --- HERO SCROLL (A área da primeira imagem da cidade) --- */
-  .hero-section {
-    position: relative;
-    /* Aumentado de 150vh para 250vh. Isso empurra o conteúdo de texto muito mais para baixo, 
-       obrigando o usuário a rolar mais vezes a bolinha do mouse antes de ver o resto do site. */
-    height: 250vh;
-  }
+  /* --- HERO --- */
+  .hero-section { position: relative; height: 180vh; }
+  .city-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1; }
+  .clean-city { background: url("/cidade-limpa.png") center/cover no-repeat; background-color: var(--abnt-verde); }
+  .polluted-city { background: url("/cidade-poluida.png") center/cover no-repeat; background-color: #57534e; }
+  .scroll-instruction { position: absolute; bottom: 50px; width: 100%; text-align: center; font-size: 1.5rem; font-weight: bold; color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); animation: bounce 2s infinite; }
 
-  /* A 'city-layer' fica grudada (fixed) no fundo enquanto o resto do site sobe por cima dela */
-  .city-layer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    z-index: -1; /* Joga a imagem para trás de todos os outros elementos */
-  }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-  .clean-city {
-    background: url("/cidade-limpa.png") center/cover no-repeat;
-    background-color: var(
-      --abnt-verde
-    ); /* Cor de fundo caso a imagem falhe ao carregar */
-  }
-
-  .polluted-city {
-    background: url("/cidade-poluida.png") center/cover no-repeat;
-    background-color: #57534e;
-    transition: opacity 0.1s ease-out; /* Deixa o escurecimento suave */
-  }
-
-  /* Texto animado que quica pedindo para a pessoa rolar a tela */
-  .scroll-instruction {
-    position: absolute;
-    bottom: 20px;
-    width: 100%;
+  /* --- SEÇÕES --- */
+  section {
+    padding: 5rem 2rem;
     text-align: center;
-    font-weight: bold;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    animation: bounce 2s infinite; /* Chama a animação 'bounce' logo abaixo */
-  }
-
-  /* Animação que faz o texto pular (translateY move ele no eixo Y/Vertical) */
-  @keyframes bounce {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  /* --- SEÇÕES GERAIS --- */
-  /* Regras compartilhadas por todas as sessões brancas/coloridas do site */
-  .content-section,
-  .impacts-section,
-  .lifecycle-section,
-  .three-rs-section,
-  .game-section {
     position: relative;
-    padding: 4rem 2rem; /* Espaço interno para não grudar nas bordas */
-    text-align: center;
-    z-index: 1; /* Garante que ficarão acima da imagem de fundo fixa */
+    z-index: 1;
+    background-color: #ffffff; /* Garante fundo branco para todas as seções por padrão */
   }
 
-  h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    font-weight: 700;
-  }
+  h2 { font-size: 2.5rem; margin-bottom: 1.5rem; }
+  p { max-width: 800px; margin: 0 auto; font-size: 1.1rem; }
 
-  p {
-    font-size: 1.1rem;
-    max-width: 800px; /* Limita a largura do texto para não ficar ruim de ler em telas muito grandes */
-    margin: 0 auto;
-  }
-
-  /* --- CONSCIENTIZAÇÃO (TEMA AZUL) --- */
   .content-section {
     background: var(--abnt-bg-azul);
-    border-radius: 40px 40px 0 0; /* Arredonda só os cantos superiores */
-    box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.1); /* Dá uma sombrinha em cima para parecer que está flutuando sobre a imagem */
+    border-radius: 50px 50px 0 0;
+    box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.1);
   }
 
-  .content-section h2 {
-    color: var(--abnt-azul);
-  }
-
-  /* Container flexível para os cards ficarem lado a lado (e caírem para baixo no celular) */
-  .info-cards {
-    display: flex;
-    justify-content: center;
-    gap: 2rem; /* Espaço entre os cards */
-    margin-top: 3rem;
-    flex-wrap: wrap; /* Se não couber, joga para a linha de baixo */
-  }
-
-  .card {
-    background: white;
-    border: 3px dashed;
-    padding: 1.5rem;
-    border-radius: 12px;
-    width: 300px;
-    transition: transform 0.3s; /* Deixa o aumento de tamanho (hover) suave */
-  }
-
-  .card-azul {
-    border-color: var(--abnt-azul);
-  }
-  .card-vermelho {
-    border-color: var(--abnt-vermelho);
-  }
-  .card-verde {
-    border-color: var(--abnt-verde);
-  }
-
-  /* Pseudo-classe ':hover' faz algo quando o mouse passa por cima (neste caso, aumenta 2%) */
-  .card:hover {
-    transform: scale(1.02);
-  }
-
-  /* --- IMPACTOS NAS CIDADES (BRANCO/NEUTRO) --- */
+  /* --- CORREÇÃO AQUI: IMPACTOS --- */
   .impacts-section {
-    background: #ffffff;
+    background-color: #ffffff; /* Fundo sólido branco para cobrir a imagem hero */
   }
 
-  .impacts-section h2 {
-    color: #333;
-  }
+  .impact-row { display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 3rem auto; }
+  .impact-text { background: #f8fafc; padding: 2rem; border-radius: 12px; text-align: left; }
 
-  .impact-container {
-    max-width: 1000px;
-    margin: 3rem auto 0;
-  }
+  /* --- 5 R's --- */
+  .five-rs-section { background: var(--bg-repensar); }
+  .rs-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin-top: 3rem; }
+  .r-card { background: white; padding: 2rem 1.5rem; border-radius: 15px; width: 220px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: transform 0.3s; }
+  .r-card:hover { transform: translateY(-10px); }
 
-  .impact-row {
-    display: flex;
-    flex-direction: column; /* Coloca um impacto debaixo do outro */
-    gap: 1.5rem;
-  }
+  /* --- MAPA --- */
+  .map-section { background: white; }
+  .map-container { max-width: 1000px; margin: 3rem auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border-radius: 15px; overflow: hidden; }
+  .map-info { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1000px; margin: 0 auto; text-align: left; }
+  .info-item { background: #f8fafc; padding: 1.5rem; border-radius: 10px; border-left: 5px solid var(--abnt-verde); }
 
-  .impact-text {
-    background: #f8fafc;
-    padding: 2rem;
-    border-radius: 8px;
-    text-align: left;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  }
+  /* --- JOGO --- */
+  .game-section { background: var(--abnt-bg-verde); padding-bottom: 10rem; }
+  .trash-area { min-height: 150px; border: 3px dashed var(--abnt-verde); border-radius: 15px; background: white; max-width: 800px; margin: 3rem auto; display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1rem; }
+  .trash-item { background: white; padding: 1rem 1.5rem; border: 2px solid #ddd; border-radius: 10px; cursor: grab; font-weight: bold; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+  .trash-item:active { cursor: grabbing; transform: scale(0.9); }
+  .bins-area { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+  .bin { width: 130px; height: 170px; border: 4px solid; border-radius: 10px 10px 20px 20px; background: white; transition: 0.3s; }
+  .bin:hover { transform: scale(1.05); }
+  .bin-cap { height: 35px; width: 110%; margin-left: -5%; border-radius: 8px 8px 0 0; }
+  .bin-body { display: flex; align-items: center; justify-content: center; height: 100px; padding: 5px; }
 
-  .impact-text h3 {
-    margin-top: 0;
-    font-size: 1.4rem;
-  }
+  /* --- CARDS INFO --- */
+  .info-cards { display: flex; gap: 2rem; justify-content: center; margin-top: 3rem; flex-wrap: wrap; }
+  .card { background: white; padding: 2rem; border-radius: 15px; width: 280px; transition: 0.3s; }
 
-  .impact-text p {
-    margin: 0;
-    max-width: 100%;
-    color: #475569;
-  }
+  /* --- MODAL --- */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  .modal-content { background: white; padding: 3rem; border-radius: 20px; max-width: 500px; text-align: center; border-top: 10px solid; }
+  .modal-content.success { border-color: var(--abnt-verde); }
+  .modal-content.error { border-color: var(--abnt-vermelho); }
+  .modal-content.finish { border-color: var(--abnt-azul); }
+  .modal-btn { margin-top: 2rem; padding: 0.8rem 2.5rem; background: var(--abnt-azul); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-  /* --- CICLO DOS MATERIAIS (FUNDO CLARO) --- */
-  .lifecycle-section {
-    background: #f8fafc;
-  }
-
-  .lifecycle-section h2 {
-    color: #333;
-  }
-
-  /* Usa CSS Grid para criar uma grade automática de cards */
-  .lifecycle-container {
-    display: grid;
-    grid-template-columns: repeat(
-      auto-fit,
-      minmax(280px, 1fr)
-    ); /* Cria colunas que se adaptam ao tamanho da tela */
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 3rem auto 0;
-    padding: 0 1rem;
-  }
-
-  .lifecycle-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    text-align: left;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
-  }
-
-  /* No hover, faz o card flutuar levemente para cima (eixo Y negativo) */
-  .lifecycle-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .lifecycle-card h3 {
-    margin-top: 0;
-    font-size: 1.4rem;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .lifecycle-card p {
-    font-size: 1rem;
-    margin: 0 0 1rem 0;
-    color: #475569;
-    line-height: 1.5;
-  }
-
-  /* --- OS 3 R's (TEMA AMARELO) --- */
-  .three-rs-section {
-    background: var(--abnt-bg-amarelo);
-  }
-
-  .three-rs-section h2 {
-    color: var(--abnt-amarelo);
-    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1);
-  }
-
-  .rs-container {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-top: 3rem;
-    flex-wrap: wrap;
-  }
-
-  .r-card {
-    background: white;
-    padding: 2rem 1.5rem;
-    border-radius: 12px;
-    width: 280px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
-
-  .r-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .r-card h3 {
-    font-size: 1.5rem;
-    margin: 0 0 1rem 0;
-  }
-
-  .r-card p {
-    font-size: 1rem;
-    color: #4b5563;
-  }
-
-  /* --- JOGO (TEMA VERDE) --- */
-  .game-section {
-    background: var(--abnt-bg-verde);
-    padding-bottom: 8rem;
-  }
-
-  .game-section h2 {
-    color: var(--abnt-verde);
-  }
-
-  /* Caixa onde ficam os lixos bagunçados */
-  .trash-area {
-    min-height: 120px;
-    border: 3px dashed; /* Borda pontilhada */
-    border-radius: 12px;
-    margin: 2rem auto;
-    max-width: 800px;
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    align-items: center;
-    padding: 1.5rem;
-    flex-wrap: wrap;
-    background: white;
-  }
-
-  /* O lixo propriamente dito que pode ser arrastado */
-  .trash-item {
-    background: white;
-    border: 2px solid #e2e8f0;
-    padding: 1.5rem 1rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    cursor: grab; /* Muda o cursor do mouse para a "mãozinha aberta" */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    user-select: none; /* Impede que o usuário selecione o texto acidentalmente ao tentar arrastar */
-    transition: transform 0.2s;
-    font-weight: bold;
-  }
-
-  /* ':active' é ativado no momento em que a pessoa clica e segura o mouse */
-  .trash-item:active {
-    cursor: grabbing; /* Muda para a "mãozinha fechada" */
-    transform: scale(
-      0.95
-    ); /* Dá um efeitinho de afundamento (diminui tamanho pra 95%) */
-  }
-
-  .empty-trash-message {
-    font-size: 1.3rem;
-    color: var(--abnt-verde);
-    font-weight: bold;
-  }
-
-  /* A área onde ficam as lixeiras maiores */
-  .bins-area {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-top: 3rem;
-    flex-wrap: wrap;
-  }
-
-  /* Desenho estrutural de cada lixeira usando CSS */
-  .bin {
-    width: 120px;
-    height: 160px;
-    border: 4px solid;
-    border-radius: 8px 8px 16px 16px; /* Arredonda menos em cima e mais embaixo */
-    display: flex;
-    flex-direction: column;
-    background: white;
-    transition: transform 0.2s;
-  }
-
-  .bin:hover {
-    transform: scale(1.05);
-  }
-
-  /* Desenho da tampa da lixeira */
-  .bin-cap {
-    height: 30px;
-    width: 110%; /* Passa um pouco do tamanho do corpo da lixeira (como uma tampa real) */
-    margin-left: -5%; /* Centraliza esse excesso */
-    border-radius: 6px 6px 0 0;
-    margin-bottom: auto;
-  }
-
-  .bin-body {
-    padding: 1rem 0;
-    font-size: 0.9rem;
-    font-weight: bold;
-    min-height: 20px;
-  }
-
-  /* --- MODAL (JANELA SOBREPOSTA) --- */
-  /* Camada escura que fica atrás do modal cobrindo a tela toda */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw; /* 100% da largura da janela */
-    height: 100vh; /* 100% da altura da janela */
-    background: rgba(0, 0, 0, 0.7); /* Preto com 70% de opacidade */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Garante que fique absoluto por cima de TUDO no site */
-  }
-
-  /* O quadrado branco da mensagem em si */
-  .modal-content {
-    background: white;
-    padding: 3rem;
-    border-radius: 16px;
-    text-align: center;
-    max-width: 500px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Faz o modal "pular" e quicar quando aparece */
-  }
-
-  /* Classes dinâmicas para colorir a borda superior do modal dependendo se acertou ou errou */
-  .modal-content.success {
-    border-top: 8px solid var(--abnt-verde);
-  }
-  .modal-content.error {
-    border-top: 8px solid var(--abnt-vermelho);
-  }
-  .modal-content.finish {
-    border-top: 8px solid var(--abnt-azul);
-    background: var(--abnt-bg-azul);
-  }
-
-  /* Estilização do botão de "Continuar" */
-  .modal-btn {
-    margin-top: 1.5rem;
-    padding: 0.75rem 2rem;
-    font-size: 1.1rem;
-    font-weight: bold;
-    background: var(--abnt-azul);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  .modal-btn:hover {
-    background: #003d99;
-  }
-
-  /* Configuração do "quique" da animação do modal */
-  @keyframes popIn {
-    0% {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
+  @media (max-width: 768px) {
+    .map-info { grid-template-columns: 1fr; }
+    h2 { font-size: 2rem; }
   }
 </style>
