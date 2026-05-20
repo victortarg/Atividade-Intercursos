@@ -1,4 +1,9 @@
 <script lang="ts">
+  import { dev } from "$app/environment";
+  import { injectAnalytics } from "@vercel/analytics/sveltekit";
+
+  injectAnalytics({ mode: dev ? "development" : "production" });
+
   // --- CONTROLE DE SCROLL ---
   let scrollY = 0;
   let innerHeight = 0;
