@@ -1,137 +1,10 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-
   // --- CONTROLE DE SCROLL ---
   let scrollY = 0;
-  let innerHeight = 0; // Pegamos a altura da tela do usuário
+  let innerHeight = 0;
 
-  // MELHORIA NA TRANSIÇÃO:
-  // Em vez de dividir por um valor fixo (800), usamos uma proporção da altura da tela.
-  // Isso garante que tanto no PC quanto no Celular, a transição seja proporcional ao que o usuário vê.
+  // Transição proporcional baseada na tela do usuário
   $: pollutionOpacity = Math.min(scrollY / (innerHeight * 0.8), 1);
-
-  // --- DADOS DO JOGO ---
-  type TrashType = "plastico" | "papel" | "vidro" | "metal";
-
-  interface TrashItem {
-    id: number;
-    name: string;
-    type: TrashType;
-    impactMessage: string;
-  }
-
-  interface Bin {
-    type: TrashType;
-    color: string;
-    name: string;
-  }
-
-  const bins: Bin[] = [
-    { type: "papel", color: "#0052cc", name: "Papel (Azul)" },
-    { type: "plastico", color: "#dc2626", name: "Plástico (Vermelho)" },
-    { type: "vidro", color: "#16a34a", name: "Vidro (Verde)" },
-    { type: "metal", color: "#ca8a04", name: "Metal (Amarelo)" },
-  ];
-
-  const initialTrashItems: TrashItem[] = [
-    {
-      id: 1,
-      name: "Garrafa PET",
-      type: "plastico",
-      impactMessage:
-        "Incrível! Reciclar plástico evita que animais marinhos se machuquem e economiza petróleo!",
-    },
-    {
-      id: 2,
-      name: "Caixa de Papelão",
-      type: "papel",
-      impactMessage:
-        "Muito bem! Reciclar papel salva muitas árvores de serem cortadas!",
-    },
-    {
-      id: 3,
-      name: "Lata de Refrigerante",
-      type: "metal",
-      impactMessage:
-        "Show! Reciclar alumínio economiza muita energia elétrica e minérios da natureza!",
-    },
-    {
-      id: 4,
-      name: "Pote de Geleia",
-      type: "vidro",
-      impactMessage:
-        "Perfeito! O vidro pode ser reciclado infinitas vezes sem perder a qualidade!",
-    },
-  ];
-
-  let trashItems: TrashItem[] = [...initialTrashItems];
-  let currentRound = 1;
-
-  // --- ESTADO DO MODAL ---
-  let modalVisible = false;
-  let modalTitle = "";
-  let modalMessage = "";
-  let modalType: "success" | "error" | "finish" = "success";
-
-  // --- LÓGICA DO JOGO ---
-  let draggedItem: TrashItem | null = null;
-
-  function handleDragStart(item: TrashItem) {
-    draggedItem = item;
-  }
-
-  function handleDrop(binType: TrashType) {
-    if (!draggedItem) return;
-
-    if (draggedItem.type === binType) {
-      showModal("Parabéns!", draggedItem.impactMessage, "success");
-      trashItems = trashItems.filter((item) => item.id !== draggedItem?.id);
-
-      if (trashItems.length === 0) {
-        if (currentRound === 1) {
-          setTimeout(() => {
-            showModal(
-              "Nível 2 Desbloqueado!",
-              "Agora vamos testar sua memória. As lixeiras perderam os textos, use apenas as cores para acertar!",
-              "success",
-            );
-            currentRound = 2;
-            trashItems = [...initialTrashItems];
-          }, 1500);
-        } else {
-          setTimeout(() => {
-            showModal(
-              "Você Salvou a Cidade!",
-              "Todo o lixo foi recolhido e reciclado. Você é um verdadeiro herói do meio ambiente!",
-              "finish",
-            );
-          }, 1500);
-        }
-      }
-    } else {
-      showModal(
-        "Ops! Lixeira Errada",
-        `Esse item não vai nessa lixeira. Tente novamente!`,
-        "error",
-      );
-    }
-    draggedItem = null;
-  }
-
-  function showModal(
-    title: string,
-    message: string,
-    type: "success" | "error" | "finish",
-  ) {
-    modalTitle = title;
-    modalMessage = message;
-    modalType = type;
-    modalVisible = true;
-  }
-
-  function closeModal() {
-    modalVisible = false;
-  }
 </script>
 
 <svelte:window bind:scrollY bind:innerHeight />
@@ -146,71 +19,79 @@
     <div class="scroll-instruction">
       <span>Arraste para baixo</span>
       <br />
-      Para onde vai o lixo quando ele sai da sua frente?
+      Para onde vai o lixo quando você joga na lixeira da facul?
     </div>
   </section>
 
   <section class="content-section">
-    <h2>Projeto Re-ciclo</h2>
+    <h2>Nosso Lixo e a Economia Circular</h2>
     <p>
-      O Problema: Cada pessoa gera em torno de 25 toneladas de lixo durante a
-      vida. O grande desafio da nossa sociedade é que, se não vemos o lixo, não
-      nos importamos com ele.
+      Você sabia que o Brasil gera cerca de <strong
+        >82 milhões de toneladas</strong
+      > de lixo por ano? O nosso grande desafio atual é que a gente se acostumou
+      a extrair, usar e simplesmente jogar as coisas fora. Mas precisamos mudar isso!
     </p>
 
     <div class="info-cards">
       <div class="card card-azul">
-        <h3 class="text-azul">A Solução</h3>
+        <h3 class="text-azul">Para onde vai tudo isso?</h3>
         <p>
-          Desenvolvemos uma intervenção pedagógica gamificada. O jogo transforma
-          o descarte em uma experiência de aprendizado ativa.
+          Infelizmente, quase 30 milhões de toneladas desse lixo ainda vão parar
+          em lixões a céu aberto todos os anos. Isso polui nossa água, o solo e
+          solta gases que prejudicam o clima.
         </p>
       </div>
       <div class="card card-vermelho">
-        <h3 class="text-vermelho">Nosso Objetivo</h3>
+        <h3 class="text-vermelho">A ilusão do "Jogar Fora"</h3>
         <p>
-          Acreditamos que a solução não é apenas "limpar", mas sim "educar para
-          não sujar" através da visibilidade do processo.
+          Já parou para pensar que não existe o "fora"? Tudo o que a gente
+          descarta continua no nosso planeta. Uma embalagem de plástico pode
+          ficar por séculos ocupando espaço na natureza.
         </p>
       </div>
       <div class="card card-verde">
-        <h3 class="text-verde">Público-Alvo</h3>
+        <h3 class="text-verde">Economia Circular</h3>
         <p>
-          A intervenção é voltada para crianças do ensino fundamental 2, mas o
-          impacto se estende aos pais e à escola de forma geral.
+          A ideia da Economia Circular é incrível: o que é "lixo" para um
+          processo, vira matéria-prima nova para outro. Mas para essa mágica
+          acontecer, a gente precisa separar o lixo direitinho!
         </p>
       </div>
     </div>
   </section>
 
   <section class="impacts-section">
-    <h2>ODS e Impacto</h2>
+    <h2>A Agenda 2030 e a Nossa Parte</h2>
     <p>
-      Desenvolvido por uma equipe dedicada ao desenvolvimento sustentável
-      global.
+      Cuidar do nosso lixo tem tudo a ver com os Objetivos de Desenvolvimento
+      Sustentável (ODS) da ONU. E a universidade é o lugar perfeito para a gente
+      começar essa mudança e espalhar a ideia!
     </p>
 
     <div class="impact-container">
       <div class="impact-row">
         <div class="impact-text border-azul">
-          <h3 class="text-azul">ODS 4</h3>
+          <h3 class="text-azul">ODS 4: Educação de Qualidade</h3>
           <p>
-            Educação de Qualidade. Através de nossa metodologia, aliamos o
-            ensino ao entretenimento consciente.
+            Aprender a cuidar do planeta também faz parte de uma educação de
+            verdade. Queremos formar não só bons profissionais, mas cidadãos que
+            pensem no futuro do meio ambiente.
           </p>
         </div>
         <div class="impact-text border-verde">
-          <h3 class="text-verde">ODS 11</h3>
+          <h3 class="text-verde">ODS 11: Cidades e Comunidades Sustentáveis</h3>
           <p>
-            Cidades e Comunidades Sustentáveis. Reforçando a importância da
-            correta gestão de resíduos urbanos.
+            Tudo começa no campus! Separar o lixo ajuda a não sobrecarregar
+            nossa cidade, evitando problemas graves como enchentes causadas por
+            bueiros entupidos e até doenças.
           </p>
         </div>
         <div class="impact-text border-amarelo">
-          <h3 class="text-amarelo">ODS 12</h3>
+          <h3 class="text-amarelo">ODS 12: Consumo e Produção Responsáveis</h3>
           <p>
-            Consumo e Produção Responsáveis. Incentivando a reflexão sobre as 25
-            toneladas geradas por indivíduo.
+            Precisamos pensar bem antes de comprar e descartar. Diminuir a
+            quantidade de coisas que consumimos e apoiar a reciclagem local faz
+            uma diferença gigante no mundo.
           </p>
         </div>
       </div>
@@ -218,33 +99,174 @@
   </section>
 
   <section class="five-rs-section">
-    <h2>A Regra dos 5 R's</h2>
+    <h2>A Regra dos 5 R's na Prática</h2>
     <div class="rs-container">
       <div class="r-card border-repensar">
         <h3 class="text-repensar">1. Repensar</h3>
-        <p>Cada compra deve ser consciente. Eu realmente preciso disso?</p>
+        <p>
+          Eu realmente preciso comprar isso? Repense seus hábitos, o que você
+          consome e de quais empresas você compra.
+        </p>
       </div>
       <div class="r-card border-recusar">
         <h3 class="text-recusar">2. Recusar</h3>
-        <p>Diga não a produtos que prejudicam o meio ambiente.</p>
+        <p>
+          Diga "não" a plásticos de uso único e a marcas que fazem <strong
+            >greenwashing</strong
+          > (aquela prática enganosa onde a empresa finge ser sustentável só no marketing
+          para vender mais, mas não ajuda o planeta de verdade).
+        </p>
       </div>
       <div class="r-card border-vermelho">
         <h3 class="text-vermelho">3. Reduzir</h3>
-        <p>Diminuir o consumo desnecessário no dia a dia.</p>
+        <p>
+          Diminua a quantidade de lixo no dia a dia. Use garrafinhas e copos
+          retornáveis e evite imprimir papeis que você pode ler na tela.
+        </p>
       </div>
       <div class="r-card border-amarelo">
         <h3 class="text-amarelo">4. Reutilizar</h3>
-        <p>Dar novas utilidades a objetos antes de jogá-los fora.</p>
+        <p>
+          Dê uma nova vida às coisas! Conserte, doe, compre de brechós ou use a
+          criatividade para transformar o que iria para a lixeira.
+        </p>
       </div>
       <div class="r-card border-verde">
         <h3 class="text-verde">5. Reciclar</h3>
-        <p>Separar corretamente para que o material vire um novo produto.</p>
+        <p>
+          Limpe um pouquinho a embalagem e jogue na lixeira da cor certa
+          (Plástico no vermelho, Papel no azul...). Assim, o material volta para
+          a fábrica e vira algo novo!
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="special-waste-section">
+    <h2>E os lixos mais "delicados"?</h2>
+    <p>
+      Nem tudo pode ir para a lixeira comum ou para o Ecoponto de papel e
+      plástico. Alguns materiais são super perigosos para a natureza se
+      descartados do jeito errado. Veja como fazer:
+    </p>
+
+    <div class="special-waste-container">
+      <div class="waste-card border-laranja">
+        <h3 class="text-laranja">Pilhas e Baterias</h3>
+        <p>
+          <strong>O perigo:</strong> Elas têm metais pesados (como chumbo e mercúrio)
+          que vazam e contaminam o solo e a água de forma irreversível.
+        </p>
+        <p>
+          <strong>Como descartar:</strong> Guarde em um pote seco e leve até pontos
+          de coleta específicos. Supermercados, farmácias e lojas de eletrônicos
+          geralmente têm caixas coletoras para a cor laranja.
+        </p>
+      </div>
+
+      <div class="waste-card border-roxo">
+        <h3 class="text-roxo">Lixo Eletrônico</h3>
+        <p>
+          <strong>O perigo:</strong> Celulares, cabos e computadores velhos demoram
+          séculos para sumir e soltam substâncias tóxicas. Além disso, jogá-los fora
+          é desperdiçar metais valiosos (como ouro e cobre) que poderiam ser reaproveitados.
+        </p>
+        <p>
+          <strong>Como descartar:</strong> Procure as lixeiras roxas ou mutirões
+          de coleta de lixo eletrônico na sua cidade ou universidade. Várias ONGs
+          e empresas recolhem esse material de graça.
+        </p>
+      </div>
+
+      <div class="waste-card border-marrom">
+        <h3 class="text-marrom">Óleo de Cozinha Usado</h3>
+        <p>
+          <strong>O perigo:</strong> Nunca jogue na pia! Apenas 1 litro de óleo pode
+          contaminar até 25 mil litros de água, matando peixes e entupindo todo o
+          encanamento da rua.
+        </p>
+        <p>
+          <strong>Como descartar:</strong> Espere esfriar, coloque em uma garrafa
+          PET bem fechada e entregue em Ecopontos ou para pessoas/empresas que fazem
+          sabão ecológico.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="diy-section">
+    <h2>Mão na Massa: Upcycling (DIY)</h2>
+    <p>
+      Você também pode fazer a sua parte em casa! O "Upcycling" é a arte de dar
+      um novo uso criativo e prático para algo que iria para o lixo. Dá uma
+      olhada nessas ideias super fáceis que separamos:
+    </p>
+
+    <div class="video-container">
+      <div class="video-card border-vermelho">
+        <h3 class="text-vermelho">Plástico: Vaso Auto-irrigável</h3>
+        <div class="iframe-wrapper">
+          <iframe
+            src="https://www.youtube.com/embed/9LMItr89MpU"
+            title="Como fazer vaso autoirrigável com garrafa PET"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          >
+          </iframe>
+        </div>
+        <p>
+          Sabe aquela garrafa PET do refri? Ela pode virar uma hortinha
+          inteligente para o seu quarto ou varanda, economizando água e espaço.
+        </p>
+      </div>
+
+      <div class="video-card border-azul">
+        <h3 class="text-azul">Papel: Papel Reciclado Caseiro</h3>
+        <div class="iframe-wrapper">
+          <iframe
+            src="https://www.youtube.com/embed/N8iOrSae9Tw"
+            title="Como fazer papel reciclado caseiro"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          >
+          </iframe>
+        </div>
+        <p>
+          Sabe aquelas apostilas antigas ou resumos do semestre passado? Que tal
+          bater no liquidificador e fazer papéis novos e super estilosos para
+          resumos e cartões?
+        </p>
+      </div>
+
+      <div class="video-card border-verde">
+        <h3 class="text-verde">Vidro: Decoração Criativa</h3>
+        <div class="iframe-wrapper">
+          <iframe
+            src="https://www.youtube.com/embed/pxTspV5JVUA"
+            title="Ideias de reciclagem com potes de vidro"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          >
+          </iframe>
+        </div>
+        <p>
+          O vidro é ótimo porque não passa cheiro nem gosto. Você pode limpar
+          aqueles potes de maionese para guardar mantimentos, temperos ou até
+          fazer luminárias iradas.
+        </p>
       </div>
     </div>
   </section>
 
   <section class="map-section">
-    <h2>Ecopontos em Fortaleza</h2>
+    <h2>Faça a sua Parte: Ecopontos em Fortaleza</h2>
+    <p style="margin-bottom: 2rem;">
+      Bora colocar a mão na massa? Encontre o Ecoponto mais perto de você para
+      levar seus recicláveis!
+    </p>
     <div class="map-container">
       <iframe
         title="Mapa de Ecopontos de Fortaleza"
@@ -260,62 +282,17 @@
     </div>
     <div class="map-info">
       <div class="info-item">
-        <strong>O que levar:</strong> Papel, plástico, vidro, metal, entulhos (até
-        2m³), móveis e podas.
+        <strong>O que eles aceitam:</strong> Plástico, papel, papelão, vidro, metais,
+        entulho de obras pequenas (até 2m³), restos de poda de árvores e até móveis
+        velhos.
       </div>
       <div class="info-item">
-        <strong>Benefício:</strong> Ganhe bônus na conta de luz ou no Bilhete Único.
+        <strong>Tem desconto!</strong> Sabia que o programa Recicla Fortaleza troca
+        seu lixo reciclável por descontos na conta de luz (Enel) ou crédito no Bilhete
+        Único? Vale muito a pena!
       </div>
     </div>
   </section>
-
-  <section class="game-section">
-    <h2>O Jogo da Reciclagem</h2>
-    <div class="trash-area">
-      {#each trashItems as item (item.id)}
-        <div
-          class="trash-item"
-          draggable="true"
-          on:dragstart={() => handleDragStart(item)}
-        >
-          <span>{item.name}</span>
-        </div>
-      {/each}
-    </div>
-
-    <div class="bins-area">
-      {#each bins as bin}
-        <div
-          class="bin"
-          style="border-color: {bin.color};"
-          on:dragover|preventDefault
-          on:drop={() => handleDrop(bin.type)}
-        >
-          <div class="bin-cap" style="background-color: {bin.color};"></div>
-          <div class="bin-body">
-            {#if currentRound === 1}
-              <strong>{bin.name}</strong>
-            {/if}
-          </div>
-        </div>
-      {/each}
-    </div>
-  </section>
-
-  {#if modalVisible}
-    <div class="modal-overlay" on:click={closeModal} role="button" tabindex="0">
-      <div
-        class="modal-content {modalType}"
-        on:click|stopPropagation
-        role="dialog"
-        tabindex="0"
-      >
-        <h2>{modalTitle}</h2>
-        <p>{modalMessage}</p>
-        <button on:click={closeModal} class="modal-btn">Continuar</button>
-      </div>
-    </div>
-  {/if}
 </main>
 
 <style>
@@ -324,6 +301,9 @@
     --abnt-vermelho: #dc2626;
     --abnt-verde: #16a34a;
     --abnt-amarelo: #ca8a04;
+    --abnt-laranja: #ea580c; /* Pilhas e Baterias (Perigosos) */
+    --abnt-roxo: #7c3aed; /* Lixo Radioativo/Eletrônico */
+    --abnt-marrom: #854d0e; /* Orgânico/Óleo */
     --repensar-color: #7c3aed;
     --recusar-color: #4b5563;
     --abnt-bg-azul: #ebf4ff;
@@ -341,10 +321,10 @@
     width: 100%;
   }
 
-  /* --- HERO (MELHORIA NA TRANSIÇÃO MOBILE) --- */
+  /* --- HERO --- */
   .hero-section {
     position: relative;
-    height: 200vh; /* Aumentado para dar mais espaço de scroll */
+    height: 200vh;
     width: 100%;
   }
 
@@ -358,7 +338,6 @@
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    /* Suaviza a troca de opacidade */
     transition: opacity 0.1s linear;
   }
 
@@ -459,6 +438,84 @@
     text-align: left;
   }
 
+  /* --- LIXOS ESPECIAIS --- */
+  .special-waste-section {
+    background: #f8fafc;
+  }
+  .special-waste-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 3rem auto 0;
+  }
+  .waste-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-bottom: 5px solid transparent;
+    text-align: center;
+  }
+  .waste-card h3 {
+    margin-top: 0;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  .waste-card p {
+    font-size: 1rem;
+    color: #475569;
+    margin-top: 1rem;
+  }
+
+  /* --- DIY E UPCYCLING SECTION --- */
+  .diy-section {
+    background: #ffffff;
+  }
+  .video-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 3rem auto 0;
+  }
+  .video-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-bottom: 5px solid transparent;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+  }
+  .video-card h3 {
+    margin-top: 0;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  .video-card p {
+    font-size: 1rem;
+    color: #475569;
+    margin-top: 1rem;
+  }
+  .iframe-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* Proporção 16:9 */
+    height: 0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .iframe-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
   /* --- MAPA --- */
   .map-container {
     width: 100%;
@@ -483,93 +540,6 @@
     text-align: left;
   }
 
-  /* --- JOGO (RESPONSIVO) --- */
-  .game-section {
-    background: var(--abnt-bg-verde);
-    padding-bottom: 5rem;
-  }
-  .trash-area {
-    min-height: 100px;
-    border: 2px dashed var(--abnt-verde);
-    border-radius: 15px;
-    background: white;
-    max-width: 600px;
-    margin: 2rem auto;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.8rem;
-    padding: 1rem;
-  }
-  .trash-item {
-    background: white;
-    padding: 0.7rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    cursor: grab;
-    font-weight: bold;
-  }
-
-  .bins-area {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-  @media (min-width: 768px) {
-    .bins-area {
-      grid-template-columns: repeat(4, 1fr);
-      max-width: 800px;
-    }
-  }
-
-  .bin {
-    width: 100%;
-    height: 140px;
-    border: 3px solid;
-    border-radius: 10px;
-    background: white;
-    display: flex;
-    flex-direction: column;
-  }
-  .bin-cap {
-    height: 25px;
-    width: 100%;
-    border-radius: 5px 5px 0 0;
-  }
-  .bin-body {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-  }
-
-  /* --- MODAL --- */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 1rem;
-    box-sizing: border-box;
-  }
-  .modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 400px;
-    border-top: 10px solid;
-  }
-
   /* --- UTILITÁRIOS --- */
   .text-azul {
     color: var(--abnt-azul);
@@ -583,12 +553,22 @@
   .text-amarelo {
     color: var(--abnt-amarelo);
   }
+  .text-laranja {
+    color: var(--abnt-laranja);
+  }
+  .text-roxo {
+    color: var(--abnt-roxo);
+  }
+  .text-marrom {
+    color: var(--abnt-marrom);
+  }
   .text-repensar {
     color: var(--repensar-color);
   }
   .text-recusar {
     color: var(--recusar-color);
   }
+
   .border-azul {
     border-color: var(--abnt-azul);
   }
@@ -600,6 +580,15 @@
   }
   .border-amarelo {
     border-color: var(--abnt-amarelo);
+  }
+  .border-laranja {
+    border-color: var(--abnt-laranja);
+  }
+  .border-roxo {
+    border-color: var(--abnt-roxo);
+  }
+  .border-marrom {
+    border-color: var(--abnt-marrom);
   }
   .border-repensar {
     border-color: var(--repensar-color);
@@ -617,7 +606,9 @@
       bottom: 10vh;
     }
     .info-cards,
-    .rs-container {
+    .rs-container,
+    .special-waste-container,
+    .video-container {
       grid-template-columns: 1fr;
     }
   }
