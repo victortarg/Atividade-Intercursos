@@ -322,8 +322,10 @@
   }
 
   /* --- HERO --- */
+  /* --- HERO --- */
   .hero-section {
     position: relative;
+    height: 200vh;
     height: 200vh;
     width: 100%;
   }
@@ -375,7 +377,7 @@
     }
   }
 
-  /* --- SEÇÕES RESPONSIVAS --- */
+  /* --- SEÇÕES GERAIS --- */
   section {
     padding: 4rem 1.5rem;
     text-align: center;
@@ -387,11 +389,6 @@
   h2 {
     font-size: clamp(1.8rem, 8vw, 2.5rem);
     margin-bottom: 1.5rem;
-  }
-  p {
-    max-width: 800px;
-    margin: 0 auto;
-    font-size: 1.05rem;
   }
 
   .content-section {
@@ -420,7 +417,43 @@
     border-bottom: 5px solid transparent;
   }
 
-  /* --- IMPACTOS (FUNDO BRANCO) --- */
+  /* --- ESTILO DA NOVA SEÇÃO DO JOGO --- */
+  .cta-game-section {
+    background-color: var(--abnt-bg-verde);
+    padding: 5rem 1.5rem;
+  }
+
+  .cta-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem;
+    background: white;
+    border-radius: 25px;
+    border: 4px dashed var(--abnt-verde);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .game-button {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 1.2rem 2.5rem;
+    background-color: var(--abnt-verde);
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    transition:
+      transform 0.2s,
+      background-color 0.2s;
+  }
+
+  .game-button:hover {
+    background-color: #128a3e;
+    transform: scale(1.05);
+  }
+
+  /* --- IMPACTOS --- */
   .impacts-section {
     background: #ffffff;
   }
@@ -597,8 +630,10 @@
     border-color: var(--recusar-color);
   }
 
-  /* --- AJUSTES ESPECÍFICOS MOBILE --- */
   @media (max-width: 480px) {
+    .cta-container {
+      padding: 1.5rem;
+    }
     .hero-section {
       height: 160vh;
     }
