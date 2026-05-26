@@ -10,6 +10,9 @@
 
   // Transição proporcional baseada na tela do usuário
   $: pollutionOpacity = Math.min(scrollY / (innerHeight * 0.8), 1);
+
+  $: arrowOpacity =
+    innerHeight > 0 ? Math.max(1 - scrollY / (innerHeight * 0.6), 0) : 1;
 </script>
 
 <svelte:window bind:scrollY bind:innerHeight />
@@ -21,10 +24,26 @@
       class="city-layer polluted-city"
       style="opacity: {pollutionOpacity};"
     ></div>
-    <div class="scroll-instruction">
-      <span>Arraste para baixo</span>
-      <br />
-      Para onde vai o lixo quando você joga na lixeira da facul?
+    <div
+      class="scroll-instruction"
+      style="opacity: {arrowOpacity}; pointer-events: {arrowOpacity === 0
+        ? 'none'
+        : 'auto'};"
+    >
+      <span class="scroll-text">Role para explorar</span>
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="7 13 12 18 17 13"></polyline>
+        <polyline points="7 6 12 11 17 6"></polyline>
+      </svg>
     </div>
   </section>
 
@@ -316,21 +335,29 @@
     --bg-repensar: #f5f3ff;
   }
 
+  /* --- CORREÇÃO DO SCROLL LATERAL (BOX-SIZING E HTML) --- */
+  :global(html),
   :global(body) {
     margin: 0;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    background-color: #ffffff;
-    color: #333;
-    line-height: 1.6;
+    padding: 0;
     overflow-x: hidden;
     width: 100%;
   }
 
-  /* --- HERO --- */
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(body) {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: #ffffff;
+    color: #333;
+    line-height: 1.6;
+  }
+
   /* --- HERO --- */
   .hero-section {
     position: relative;
-    height: 200vh;
     height: 200vh;
     width: 100%;
   }
@@ -338,9 +365,13 @@
   .city-layer {
     position: fixed;
     top: 0;
+    bottom: 0;
     left: 0;
+    right: 0;
+    /* Alterado de 100vw para 100% para evitar vazar a margem da tela */
     width: 100%;
     height: 100vh;
+    height: 100dvh;
     z-index: -1;
     background-position: center;
     background-size: cover;
@@ -359,17 +390,26 @@
   }
 
   .scroll-instruction {
-    position: absolute;
-    bottom: 15vh;
+    position: fixed;
+    bottom: 40px;
+    left: 0;
     width: 100%;
-    padding: 0 1rem;
-    box-sizing: border-box;
-    text-align: center;
-    font-size: clamp(1rem, 5vw, 1.3rem);
-    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 10;
     color: white;
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 1);
+    filter: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.8));
+    transition: opacity 0.1s linear;
     animation: bounce 2s infinite;
+  }
+
+  .scroll-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
   }
 
   @keyframes bounce {
@@ -378,11 +418,11 @@
       transform: translateY(0);
     }
     50% {
-      transform: translateY(-15px);
+      transform: translateY(12px);
     }
   }
 
-  /* --- SEÇÕES GERAIS --- */
+  /* --- SEÇÕES RESPONSIVAS --- */
   section {
     padding: 4rem 1.5rem;
     text-align: center;
@@ -394,6 +434,11 @@
   h2 {
     font-size: clamp(1.8rem, 8vw, 2.5rem);
     margin-bottom: 1.5rem;
+  }
+  p {
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 1.05rem;
   }
 
   .content-section {
@@ -422,43 +467,7 @@
     border-bottom: 5px solid transparent;
   }
 
-  /* --- ESTILO DA NOVA SEÇÃO DO JOGO --- */
-  .cta-game-section {
-    background-color: var(--abnt-bg-verde);
-    padding: 5rem 1.5rem;
-  }
-
-  .cta-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 3rem;
-    background: white;
-    border-radius: 25px;
-    border: 4px dashed var(--abnt-verde);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-  }
-
-  .game-button {
-    display: inline-block;
-    margin-top: 2rem;
-    padding: 1.2rem 2.5rem;
-    background-color: var(--abnt-verde);
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1.2rem;
-    border-radius: 50px;
-    transition:
-      transform 0.2s,
-      background-color 0.2s;
-  }
-
-  .game-button:hover {
-    background-color: #128a3e;
-    transform: scale(1.05);
-  }
-
-  /* --- IMPACTOS --- */
+  /* --- IMPACTOS (FUNDO BRANCO) --- */
   .impacts-section {
     background: #ffffff;
   }
@@ -493,7 +502,7 @@
     border-radius: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     border-bottom: 5px solid transparent;
-    text-align: center;
+    text-align: left;
   }
   .waste-card h3 {
     margin-top: 0;
@@ -635,15 +644,10 @@
     border-color: var(--recusar-color);
   }
 
+  /* --- AJUSTES ESPECÍFICOS MOBILE --- */
   @media (max-width: 480px) {
-    .cta-container {
-      padding: 1.5rem;
-    }
     .hero-section {
       height: 160vh;
-    }
-    .scroll-instruction {
-      bottom: 10vh;
     }
     .info-cards,
     .rs-container,
